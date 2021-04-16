@@ -4,7 +4,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.usb4java.*;
 
 import javax.usb.*;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -31,19 +30,7 @@ public class FelicaReader {
 
             UsbServices services = UsbHostManager.getUsbServices();
 
-            /*DeviceList list = new DeviceList();
-            int deviceresult = LibUsb.getDeviceList(context,list);
-
-            for(Device device: list){
-                DeviceDescriptor descriptor = new DeviceDescriptor();
-                deviceresult = LibUsb.getDeviceDescriptor(device, descriptor);
-                if(deviceresult != LibUsb.SUCCESS){
-                    throw new LibUsbException("Unable to read device descriptor", deviceresult);
-                }
-            }*/
-
-
-            DeviceHandle devicehandle = LibUsb.openDeviceWithVidPid(context, (short) 0x054c, (short) 0x06c3);
+            DeviceHandle devicehandle = LibUsb.openDeviceWithVidPid(context, (short) VENDOR_ID, (short) PRODUCT_ID);
             LibUsb.setAutoDetachKernelDriver(devicehandle, true);
             LibUsb.setConfiguration(devicehandle, 1);
 
@@ -60,7 +47,7 @@ public class FelicaReader {
             UsbEndpoint endpointOut = null;
 
             for (int i = 0; i < iface.getUsbEndpoints().size(); i++) {
-                byte endPointAddr = (byte) ((UsbEndpoint) (iface.getUsbEndpoints().get(i))).getUsbEndpointDescriptor()
+                byte endPointAddr = ((UsbEndpoint) (iface.getUsbEndpoints().get(i))).getUsbEndpointDescriptor()
                         .bEndpointAddress();
                 if ((((endPointAddr & 0x80) == 0x80))) {
                     endpointIn = (UsbEndpoint) (iface.getUsbEndpoints().get(i));
@@ -69,17 +56,18 @@ public class FelicaReader {
                 }
             }
 
-            endpointIn = iface.getUsbEndpoint((byte) 0x02);
-            endpointOut = iface.getUsbEndpoint((byte) 0x81);
-
             this.outPipe = endpointOut.getUsbPipe();
             this.inPipe = endpointIn.getUsbPipe();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void open() throws UsbException{
+        //this.iface.claim();
+        //Try force from kernel?
+
         this.iface.claim();
         this.inPipe.open();
         this.outPipe.open();
@@ -132,8 +120,7 @@ public class FelicaReader {
         return null;
     }
 
-    public UsbDevice findDevice(UsbHub hub, int vendorId, int productId)
-            throws UsbException, UnsupportedEncodingException {
+    public UsbDevice findDevice(UsbHub hub, int vendorId, int productId) {
         for(UsbDevice device : (List<UsbDevice>) hub.getAttachedUsbDevices()){
             UsbDeviceDescriptor desc = device.getUsbDeviceDescriptor();
 

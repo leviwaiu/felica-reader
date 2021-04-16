@@ -25,13 +25,14 @@ public class Frame {
 
             this.frame = data;
             if (Arrays.equals(Arrays.copyOfRange(data, 0, 6), ACK)) {
-                this.type = TYPE_ACK;
+                this.type = com.leviwaiu.Frame.TYPE_ACK;
 //            } else if (Arrays.equals( Arrays.copyOfRange(data, 0, 5), Frame.ERR)) {
 //                this.type = "err";
             } else if (Arrays.equals(Arrays.copyOfRange(this.frame, 3, 5), new byte[]{(byte) 0xff, (byte) 0xff})) {
-                this.type = TYPE_DATA;
+                this.type = com.leviwaiu.Frame.TYPE_DATA;
             }
 
+            assert this.type != null;
             if (this.type.equals(TYPE_DATA)) {
                 ByteBuffer buf = ByteBuffer.wrap(Arrays.copyOfRange(this.frame, 5, 7));
                 buf.order(ByteOrder.LITTLE_ENDIAN);
